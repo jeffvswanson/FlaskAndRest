@@ -9,7 +9,7 @@ items = []
 class Item(Resource):
     def get(self, name):
         item = next(filter(lambda x: x['name'] == name, items), None)
-        return {'item': None}, 200 if item else 404 # Not found
+        return {'item': item}, 200 if item else 404 # Not found
 
     def post(self, name):
         # Error first design
