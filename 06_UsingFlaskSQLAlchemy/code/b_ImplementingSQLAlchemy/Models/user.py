@@ -1,4 +1,3 @@
-import sqlite3
 from db import db
 
 class UserModel(db.Model):
@@ -8,43 +7,26 @@ class UserModel(db.Model):
     username = db.Column(db.String(80))
     password = db.Column(db.String(80))
 
-    def __init__(self, _id, username, password):
-        self.id = _id
+    def __init__(self, username, password):
         self.username = username
         self.password = password
 
     @classmethod
     def find_by_username(cls, username):
-        connection = sqlite3.connect('data.db')
-        cursor = connection.cursor()
-
-        query = "SELECT * FROM users WHERE username=?"
-        result = cursor.execute(query, (username,))  # (<value>,) = single value tuple
-        row = result.fetchone()
-        if row:
-            # from db, column 0 = id, 1 = username, 2 = password
-            # *row expands the arguments in row
-            user = cls(*row)
-        else:
-            user = None
-
-        connection.close()
-        return user
+        # SELECT * FROM users WHERE username=username LIMIT 1
+        return cls.query.filter_by(username=username).first()
 
     @classmethod
     def find_by_id(cls, _id):
-        connection = sqlite3.connect('data.db')
-        cursor = connection.cursor()
+        # SELECT * FROM users WHERE id=_id LIMIT 1
+        return cls.query.filter_by(id=_id).first()
 
-        query = "SELECT * FROM users WHERE id=?"
-        result = cursor.execute(query, (_id,))  # (<value>,) = single value tuple
-        row = result.fetchone()
-        if row:
-            # from db, column 0 = id, 1 = username, 2 = password
-            # *row expands the arguments in row
-            user = cls(*row)
-        else:
-            user = None
+    def save_to_db(self):
+        # INSERT INTO users
+        db.session.add(self)
+        db.session.commit()
 
-        connection.close()
-        return user
+    def delete_from_db(self):
+        # DELETE FROM users
+        db.session.delete(self)
+        db.session.commit()
