@@ -25,43 +25,38 @@ class Item(Resource):
 
         item = ItemModel(name, data['price'])
         try:
-            item.insert()
+            item.save_to_db()
         except:
             return {'message': 'An error occurred inserting the item into the database.'}, 500  # Internal Server Error
 
         return item.json(), 201 # Created
 
     def delete(self, name):
-        connection = sqlite3.connect('data.db')
-        cursor = connection.cursor()
+        item = ItemModel.find_by_name(name)
+        if item:
+            item.delete_from_db()
 
-        query = "DELETE FROM items WHERE name=?"
-        cursor.execute(query, (name,))
-
-        connection.commit()
-        connection.close()
         return {'message': 'Item deleted'}
 
     def put(self, name):
         data = Item.parser.parse_args()
 
-        try:
-            item = ItemModel.find_by_name(name)
-        except:
-            {'message': 'An error occurred attempting to retrieve the item from the database.'}, 500  # Internal Server Error
-        updated_item = ItemModel(name, data['price'])
+        item = ItemModel.find_by_name(name)
 
         if item is None:
             try:
-                updated_item.insert()
+                item = ItemModel(name, data['price'])
             except:
                 {'message': 'An error occurred attempting to insert the item into the database'}, 500  # Internal Server Error
         else:
             try:
-                updated_item.update()
+                item.price = data['price']
             except:
                 {'message': 'An error occurred attempting to update the item in the database'}, 500  # Internal Server Error
-        return updated_item.json()
+
+        item.save_to_db()
+
+        return item.json()
 
 class ItemList(Resource):
     def get(self):

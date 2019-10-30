@@ -1,4 +1,3 @@
-import sqlite3
 from db import db
 
 class ItemModel(db.Model):
@@ -17,34 +16,15 @@ class ItemModel(db.Model):
 
     @classmethod
     def find_by_name(cls, name):
-        connection = sqlite3.connect('data.db')
-        cursor = connection.cursor()
+        # SELECT * FROM items WHERE name=name LIMIT 1
+        return cls.query.filter_by(name=name).first()
 
-        query = "SELECT * FROM items WHERE name=?"
-        result = cursor.execute(query, (name,))
-        row = result.fetchone()
-        connection.close()
+    def save_to_db(self):
+        # INSERT INTO items
+        db.session.add(self)
+        db.session.commit()
 
-        if row:
-            # *row is row[0] = name, row[1] = price
-            return cls(*row)
-
-    def insert(self):
-        connection = sqlite3.connect('data.db')
-        cursor = connection.cursor()
-
-        query = "INSERT INTO items VALUES (?, ?)"
-        cursor.execute(query, (self.name, self.price))
-
-        connection.commit()
-        connection.close()
-
-    def update(self):
-        connection = sqlite3.connect('data.db')
-        cursor = connection.cursor()
-
-        query = "UPDATE items SET price=? WHERE name=?"
-        cursor.execute(query, (self.price, self.name))
-
-        connection.commit()
-        connection.close()
+    def delete_from_db(self):
+        # DELETE FROM items
+        db.session.delete(self)
+        db.session.commit()
